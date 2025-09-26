@@ -1,0 +1,10 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/Metmuseum.Tests/bin/Debug/net8.0
+/Metmuseum.Tests/obj
+/Metmuseum/bin/Debug/net8.0
+/.vs
+/Metmuseum/obj
+/.gitignore
