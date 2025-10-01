@@ -155,10 +155,14 @@ namespace Metmuseum.Services
             {
                 using var context = CreateDbContext();
 
+                var ids = items.Select(x => x.ObjectID).ToArray();
+                var existingObjects = await context.MetObjects
+                    .Where(x => ids.Contains(x.ObjectID))
+                    .ToDictionaryAsync(x => x.ObjectID, ct);
+
                 foreach (var obj in items)
                 {
-                    var existing = await context.MetObjects.FindAsync(new object[] { obj.ObjectID }, ct);
-                    if (existing != null)
+                    if (existingObjects.TryGetValue(obj.ObjectID, out var existing))
                     {
                         existing.Title = obj.Title;
                         existing.JsonData = obj.JsonData;
@@ -175,9 +179,15 @@ namespace Metmuseum.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error flushing buffer.");
+                lock (_flushLock)
+                {
+                    foreach (var item in items)
+                        _buffer.Add(item);
+                }
+                _logger.LogError(ex, "Error flushing buffer, items re-added to buffer.");
             }
         }
+
 
         private void IncrementProgress()
         {
